@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Service System - Hospital Finder</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e74c3c;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --route-color-1: #00ff00; /* Green */
+            --route-color-2: #0000ff; /* Blue */
+            --route-color-3: #ff0000; /* Red */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .pulse-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+        }
+        
+        .header {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .heart-beat {
+            animation: heartBeat 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.2); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.2); }
+            70% { transform: scale(1); }
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background-color: var(--dark-color);
+            color: white;
+        }
+        
+        .content {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .hospital-list {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .map-container {
+            flex: 2;
+            min-width: 300px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+        }
+        
+        .hospital-card {
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .hospital-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        
+        .hospital-card.active {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .hospital-name {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .hospital-name i {
+            color: var(--primary-color);
+            margin-right: 8px;
+        }
+        
+        .hospital-distance {
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .route-info {
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .route-info h3 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .route-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .route-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .route-label {
+            color: #777;
+        }
+        
+        .route-value {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .emergency-call {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            z-index: 100;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+        
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 8px;
+        }
+        
+        /* Route selector tabs */
+        .route-tabs {
+            display: flex;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        
+        .route-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .route-tab.active {
+            color: white;
+        }
+        
+        .route-tab:nth-child(1) {
+            background-color: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00cc00;
+        }
+        
+        .route-tab:nth-child(1).active {
+            background-color: #00cc00;
+        }
+        
+        .route-tab:nth-child(2) {
+            background-color: rgba(0, 0, 255, 0.2);
+            border: 1px solid #0000cc;
+        }
+        
+        .route-tab:nth-child(2).active {
+            background-color: #0000cc;
+        }
+        
+        .route-tab:nth-child(3) {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid #cc0000;
+        }
+        
+        .route-tab:nth-child(3).active {
+            background-color: #cc0000;
+        }
+        
+        .location-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            z-index: 500;
+        }
+        
+        .location-btn i {
+            color: var(--primary-color);
+        }
+        
+        .error-message {
+            background-color: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                margin: 15px auto;
+            }
+            
+            .content {
+                flex-direction: column;
+            }
+            
+            .hospital-list, .map-container {
+                min-width: 100%;
+            }
+            
+            .hospital-list {
+                max-height: 300px;
+            }
+            
+            #map {
+                height: 300px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .back-btn {
+                width: 30px;
+                height: 30px;
+                left: 10px;
+            }
+            
+            .emergency-call {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .route-tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pulse-background"></div>
+    
+    <div class="loading" id="loading">
+        <div>
+            <div class="spinner"></div>
+            <div class="loading-text">Getting your location...</div>
+        </div>
+    </div>
+    
+    <div class="error-message" id="error-message">
+        Unable to access your location. Please check your permissions.
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+            <h1><i class="fas fa-heartbeat heart-beat"></i> Hospital Finder</h1>
+            <p>Select a hospital to see the shortest route</p>
+        </div>
+        
+        <div class="content">
+            <div class="hospital-list" id="hospital-list">
+                <!-- Hospital cards will be dynamically added here -->
+            </div>
+            
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <div class="location-btn" id="location-btn">
+                    <i class="fas fa-location-arrow"></i>
+                </div>
+                
+                <div class="route-tabs" id="route-tabs">
+                    <div class="route-tab active" onclick="selectRoute(0)">
+                        Shortest Route
+                    </div>
+                    <div class="route-tab" onclick="selectRoute(1)">
+                        Alternate Route
+                    </div>
+                    <div class="route-tab" onclick="selectRoute(2)">
+                        Longest Route
+                    </div>
+                </div>
+                
+                <div class="route-info" id="route-info">
+                    <h3>Route Information</h3>
+                    <div class="route-detail">
+                        <span class="route-label">Distance</span>
+                        <span class="route-value" id="route-distance">0 km</span>
+                    </div>
+                    <div class="route-detail">
+                        <span class="route-label">Estimated Time</span>
+                        <span class="route-value" id="route-time">0 min</span>
+                    </div>
+                    <div class="route-detail">
+                        <span class="route-label">Road Type</span>
+                        <span class="route-value" id="route-type">Mixed</span>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #00ff00;"></div>
+                        <span>Shortest Route</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #0000ff;"></div>
+                        <span>Alternative Route</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff0000;"></div>
+                        <span>Longest Route</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="emergency-call" onclick="callEmergency()">
+        <i class="fas fa-phone"></i>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+    <script>
+        // Define the hospital locations
+        const hospitalLocations = {
+            'Apollo Speciality Hospitals': [9.92845107063264, 78.1490877660568],
+            'Meenakshi Mission Hospital': [9.94802716543532, 78.1629092749301],
+            'Velammal Medical College Hospital': [9.886849012033327, 78.15014381533766],
+            'AVSS Hospital': [9.91758806933076, 78.13921992029667],
+            'Madurai Medical College': [9.929116498156905, 78.1370005945043],
+            'Booma Nursing Home': [9.935864108998347, 78.13466017122525],
+            'Venkateswara Hospital': [9.925768390898137, 78.13276213497977],
+        };
+        
+        // Variables for map and routing
+        let map;
+        let currentLocation = null;
+        let userMarker = null;
+        let selectedHospital = null;
+        let routeControls = [];
+        let routeColors = ["#00ff00", "#0000ff", "#ff0000"];
+        let selectedRouteIndex = 0;
+        let isRouteVisible = false;
+        
+        // Initialize the app
+        window.onload = function() {
+            // Initialize the map with a default view (will be updated with user location)
+            map = L.map('map').setView([9.925, 78.119], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add hospital markers to the map
+            addHospitalMarkers();
+            
+            // Get user's location
+            getUserLocation();
+            
+            // Set up location button
+            document.getElementById('location-btn').addEventListener('click', function() {
+                getUserLocation();
+            });
+        };
+        
+        // Get the user's current location
+        function getUserLocation() {
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('loading').querySelector('.loading-text').textContent = 'Getting your location...';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        currentLocation = [position.coords.latitude, position.coords.longitude];
+                        updateUserLocation(currentLocation);
+                        document.getElementById('loading').style.display = 'none';
+                    },
+                    // Error callback
+                    function(error) {
+                        console.error("Error getting location:", error.message);
+                        document.getElementById('error-message').textContent = "Couldn't access your location: " + error.message;
+                        document.getElementById('error-message').style.display = 'block';
+                        document.getElementById('loading').style.display = 'none';
+                        
+                        // Fall back to default location
+                        currentLocation = [9.925, 78.119]; // Default location near Madurai
+                        updateUserLocation(currentLocation);
+                        
+                        // Hide error message after 5 seconds
+                        setTimeout(function() {
+                            document.getElementById('error-message').style.display = 'none';
+                        }, 5000);
+                    },
+                    // Options
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                document.getElementById('error-message').textContent = "Geolocation is not supported by this browser.";
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                
+                // Fall back to default location
+                currentLocation = [9.925, 78.119]; // Default location near Madurai
+                updateUserLocation(currentLocation);
+                
+                // Hide error message after 5 seconds
+                setTimeout(function() {
+                    document.getElementById('error-message').style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Update user's location on the map
+        function updateUserLocation(location) {
+            // Remove existing marker if any
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
+            
+            // Create a custom marker for user location
+            userMarker = L.marker(location, {
+                icon: L.divIcon({
+                    className: 'current-location-marker',
+                    html: '<i class="fas fa-map-marker-alt" style="color: #3498db; font-size: 24px;"></i>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24]
+                })
+            }).addTo(map).bindPopup('Your Current Location');
+            
+            // Center map on user's location
+            map.setView(location, 13);
+            
+            // Update hospital list with distances from current location
+            populateHospitalList();
+            
+            // If a hospital was already selected, recalculate routes
+            if (selectedHospital) {
+                selectHospital(selectedHospital);
+            }
+        }
+        
+        // Add hospital markers to the map
+        function addHospitalMarkers() {
+            for (const [name, coords] of Object.entries(hospitalLocations)) {
+                L.marker(coords, {
+                    icon: L.divIcon({
+                        className: 'hospital-marker',
+                        html: '<i class="fas fa-hospital" style="color: #e74c3c; font-size: 20px;"></i>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 20]
+                    })
+                }).addTo(map).bindPopup(`<strong>${name}</strong>`);
+            }
+        }
+        
+        // Populate hospital list
+        function populateHospitalList() {
+            const hospitalListEl = document.getElementById('hospital-list');
+            hospitalListEl.innerHTML = '';
+            
+            // Sort hospitals by distance from user's location
+            const hospitals = Object.entries(hospitalLocations)
+                .map(([name, coords]) => {
+                    const distance = currentLocation ? 
+                        calculateDistance(currentLocation[0], currentLocation[1], coords[0], coords[1]) : 0;
+                    return { name, coords, distance };
+                })
+                .sort((a, b) => a.distance - b.distance);
+            
+            for (const hospital of hospitals) {
+                const hospitalCard = document.createElement('div');
+                hospitalCard.className = 'hospital-card';
+                hospitalCard.onclick = () => selectHospital(hospital.name);
+                
+                hospitalCard.innerHTML = `
+                    <div class="hospital-name"><i class="fas fa-hospital"></i> ${hospital.name}</div>
+                    <div class="hospital-distance">Distance: ${hospital.distance.toFixed(2)} km</div>
+                `;
+                
+                hospitalListEl.appendChild(hospitalCard);
+            }
+        }
+        
+        // Calculate distance between two coordinates
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+        
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+        
+        // Function to select a hospital and calculate routes
+        function selectHospital(hospitalName) {
+            if (!currentLocation) {
+                document.getElementById('error-message').textContent = "Please wait for your location to be determined.";
+                document.getElementById('error-message').style.display = 'block';
+                
+                // Hide error message after 3 seconds
+                setTimeout(function() {
+                    document.getElementById('error-message').style.display = 'none';
+                }, 3000);
+                
+                return;
+            }
+            
+            selectedHospital = hospitalName;
+            
+            // Update active hospital in the list
+            document.querySelectorAll('.hospital-card').forEach(card => {
+                if (card.querySelector('.hospital-name').textContent.includes(hospitalName)) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('loading').querySelector('.loading-text').textContent = 'Calculating routes...';
+            
+            // Clear previous routes
+            clearRoutes();
+            
+            // Calculate and display routes using Leaflet Routing Machine
+            calculateRoutesWithLeaflet(hospitalName);
+        }
+        
+        // Clear all existing routes
+        function clearRoutes() {
+            for (let i = 0; i < routeControls.length; i++) {
+                if (routeControls[i]) {
+                    map.removeControl(routeControls[i]);
+                    routeControls[i] = null;
+                }
+            }
+            isRouteVisible = false;
+        }
+        
+        // Calculate and display routes using Leaflet Routing Machine (works without API key)
+        function getUserLocation() {
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('loading').querySelector('.loading-text').textContent = 'Getting your location...';
+    
+    // Clear any existing user marker first
+    if (userMarker) {
+        map.removeLayer(userMarker);
+        userMarker = null;
+    }
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            function(position) {
+                currentLocation = [position.coords.latitude, position.coords.longitude];
+                console.log("Successfully obtained user location:", currentLocation);
+                updateUserLocation(currentLocation);
+                document.getElementById('loading').style.display = 'none';
+            },
+            // Error callback
+            function(error) {
+                console.error("Error getting location:", error.message);
+                document.getElementById('error-message').textContent = "Couldn't access your location: " + error.message;
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                
+                // Fall back to a default location in Madurai
+                currentLocation = [9.9252, 78.1198]; // Central Madurai coordinates
+                console.log("Using fallback location:", currentLocation);
+                updateUserLocation(currentLocation);
+                
+                // Hide error message after 5 seconds
+                setTimeout(function() {
+                    document.getElementById('error-message').style.display = 'none';
+                }, 5000);
+            },
+            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        document.getElementById('error-message').textContent = "Geolocation is not supported by this browser.";
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+        
+        // Fall back to default location
+        currentLocation = [9.9252, 78.1198]; // Central Madurai
+        console.log("Geolocation not supported, using fallback:", currentLocation);
+        updateUserLocation(currentLocation);
+        
+        // Hide error message after 5 seconds
+        setTimeout(function() {
+            document.getElementById('error-message').style.display = 'none';
+        }, 5000);
+    }
+}
+
+// Update user's location on the map with clearer marker
+function updateUserLocation(location) {
+    // Remove existing marker if any
+    if (userMarker) {
+        map.removeLayer(userMarker);
+    }
+    
+    // Create a custom marker for user location with a clear blue pin
+    userMarker = L.marker(location, {
+        icon: L.divIcon({
+            className: 'current-location-marker',
+            html: '<div style="background-color: #3498db; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        })
+    }).addTo(map).bindPopup('Your Current Location');
+    
+    // Add a pulsing circle around the marker for better visibility
+    L.circle(location, {
+        color: '#3498db',
+        fillColor: '#3498db',
+        fillOpacity: 0.2,
+        radius: 100,
+        className: 'pulse-circle'
+    }).addTo(map);
+    
+    // Center map on user's location with closer zoom
+    map.setView(location, 14);
+    
+    // Update hospital list with distances from current location
+    populateHospitalList();
+    
+    // If a hospital was already selected, recalculate routes
+    if (selectedHospital) {
+        selectHospital(selectedHospital);
+    }
+}
+
+// Calculate and display truly different routes using waypoint manipulation
+function calculateRoutesWithLeaflet(hospitalName) {
+    // Clear any existing routes first
+    clearRoutes();
+    
+    const hospitalCoords = hospitalLocations[hospitalName];
+    
+    // Ensure we have valid coordinates
+    if (!currentLocation || !hospitalCoords) {
+        console.error("Missing coordinates:", { currentLocation, hospitalCoords });
+        document.getElementById('error-message').textContent = "Invalid coordinates. Please try again.";
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+        return;
+    }
+    
+    console.log("Calculating routes from", currentLocation, "to", hospitalCoords);
+    
+    // Create basic waypoints for the direct route
+    const startPoint = L.latLng(currentLocation[0], currentLocation[1]);
+    const endPoint = L.latLng(hospitalCoords[0], hospitalCoords[1]);
+    
+    // Calculate the bearing between points
+    const startLatRad = currentLocation[0] * Math.PI / 180;
+    const startLngRad = currentLocation[1] * Math.PI / 180;
+    const endLatRad = hospitalCoords[0] * Math.PI / 180;
+    const endLngRad = hospitalCoords[1] * Math.PI / 180;
+    const dLng = endLngRad - startLngRad;
+    
+    const y = Math.sin(dLng) * Math.cos(endLatRad);
+    const x = Math.cos(startLatRad) * Math.sin(endLatRad) - 
+              Math.sin(startLatRad) * Math.cos(endLatRad) * Math.cos(dLng);
+    const bearing = Math.atan2(y, x);
+    
+    // Calculate perpendicular bearings for alternative routes
+    const perpBearing1 = bearing + Math.PI/2;  // 90 degrees clockwise
+    const perpBearing2 = bearing - Math.PI/2;  // 90 degrees counterclockwise
+    
+    // Calculate distance between points
+    const directDistance = calculateDistance(
+        currentLocation[0], currentLocation[1], 
+        hospitalCoords[0], hospitalCoords[1]
+    );
+    
+    // Define distance for waypoint offset (as a fraction of direct distance)
+    const offsetDistance1 = directDistance * 0.3; // 30% of direct distance
+    const offsetDistance2 = directDistance * 0.3;
+    
+    // Calculate midpoint
+    const midLat = (currentLocation[0] + hospitalCoords[0]) / 2;
+    const midLng = (currentLocation[1] + hospitalCoords[1]) / 2;
+    
+    // Calculate offsets for alternative routes using bearings
+    function calculateDestination(lat, lng, bearing, distance) {
+        // Convert distance from km to radians
+        const angularDistance = distance / 6371.0;
+        const latRad = lat * Math.PI / 180;
+        const lngRad = lng * Math.PI / 180;
+        
+        const sinLatRad = Math.sin(latRad);
+        const cosLatRad = Math.cos(latRad);
+        const sinAngDist = Math.sin(angularDistance);
+        const cosAngDist = Math.cos(angularDistance);
+        const sinBearing = Math.sin(bearing);
+        const cosBearing = Math.cos(bearing);
+        
+        const newLatRad = Math.asin(sinLatRad * cosAngDist + cosLatRad * sinAngDist * cosBearing);
+        const newLngRad = lngRad + Math.atan2(
+            sinBearing * sinAngDist * cosLatRad,
+            cosAngDist - sinLatRad * Math.sin(newLatRad)
+        );
+        
+        return [newLatRad * 180 / Math.PI, newLngRad * 180 / Math.PI];
+    }
+    
+    // Calculate waypoints for alternative routes
+    const waypointCoords1 = calculateDestination(midLat, midLng, perpBearing1, offsetDistance1);
+    const waypointCoords2 = calculateDestination(midLat, midLng, perpBearing2, offsetDistance2);
+    
+    // Create waypoint objects
+    const waypoint1 = L.latLng(waypointCoords1[0], waypointCoords1[1]);
+    const waypoint2 = L.latLng(waypointCoords2[0], waypointCoords2[1]);
+    
+    // Add waypoint markers for debugging (can be removed in production)
+    L.marker(waypoint1, {
+        icon: L.divIcon({
+            className: 'waypoint-marker',
+            html: '<div style="background-color: blue; width: 8px; height: 8px; border-radius: 50%;"></div>',
+            iconSize: [8, 8],
+            iconAnchor: [4, 4]
+        })
+    }).addTo(map);
+    
+    L.marker(waypoint2, {
+        icon: L.divIcon({
+            className: 'waypoint-marker',
+            html: '<div style="background-color: red; width: 8px; height: 8px; border-radius: 50%;"></div>',
+            iconSize: [8, 8],
+            iconAnchor: [4, 4]
+        })
+    }).addTo(map);
+    
+    // Define routing options for three different routes
+    const routingOptions = [
+        // Direct route
+        {
+            waypoints: [startPoint, endPoint],
+            lineOptions: { styles: [{ color: routeColors[0], weight: 5, opacity: 0.8 }] },
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            showAlternatives: false
+        },
+        // Alternative route 1 - via first perpendicular waypoint
+        {
+            waypoints: [startPoint, waypoint1, endPoint],
+            lineOptions: { styles: [{ color: routeColors[1], weight: 3, opacity: 0.6 }] },
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            showAlternatives: false
+        },
+        // Alternative route 2 - via second perpendicular waypoint
+        {
+            waypoints: [startPoint, waypoint2, endPoint],
+            lineOptions: { styles: [{ color: routeColors[2], weight: 3, opacity: 0.6 }] },
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            showAlternatives: false
+        }
+    ];
+    
+    // Store all waypoints for map bounds calculation
+    const allWaypoints = [
+        [currentLocation[0], currentLocation[1]],
+        [hospitalCoords[0], hospitalCoords[1]],
+        [waypointCoords1[0], waypointCoords1[1]],
+        [waypointCoords2[0], waypointCoords2[1]]
+    ];
+    
+    // Generate and add route controls to the map
+    for (let i = 0; i < routingOptions.length; i++) {
+        console.log(`Creating route ${i} with waypoints:`, routingOptions[i].waypoints);
+        
+        routeControls[i] = L.Routing.control(routingOptions[i])
+            .on('routesfound', function(e) {
+                console.log(`Route ${i} found:`, e.routes[0]);
+                
+                // Update UI when first route is ready
+                if (!isRouteVisible && i === 0) {
+                    isRouteVisible = true;
+                    
+                    const route = e.routes[0];
+                    const distance = (route.summary.totalDistance / 1000).toFixed(2);
+                    const timeMinutes = Math.round(route.summary.totalTime / 60);
+                    
+                    document.getElementById('route-distance').textContent = `${distance} km`;
+                    document.getElementById('route-time').textContent = `${timeMinutes} min`;
+                    
+                    let roadType = 'Fastest Route';
+                    document.getElementById('route-type').textContent = roadType;
+                    
+                    document.getElementById('route-info').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Fit map to include all routes
+                    map.fitBounds(L.latLngBounds(allWaypoints), { padding: [50, 50] });
+                }
+            })
+            .addTo(map);
+        
+        // Hide the routing instructions panel
+        routeControls[i].hide();
+    }
+}
+    
+
+// Call emergency function
+function callEmergency() {
+    // In a real application, this would initiate a call to emergency services
+    alert('Calling emergency services (108/112)...');
+    // For a real app, use: window.location.href = 'tel:108';
+}
+
+// Go back function
+function goBack() {
+    // In a real app, this would navigate back to the previous page
+    alert('Going back to main screen...');
+    // For a real app, use: window.history.back();
+}
+
+// Function to simulate continuous location updates (for demo purposes)
+function simulateLocationUpdates() {
+    // Only simulate if we have a real location to work with
+    if (!currentLocation) return;
+    
+    setInterval(function() {
+        // Small random movement (within ~10-50 meters)
+        const latChange = (Math.random() - 0.5) * 0.001;
+        const lngChange = (Math.random() - 0.5) * 0.001;
+        
+        // Update the current location
+        currentLocation = [
+            currentLocation[0] + latChange,
+            currentLocation[1] + lngChange
+        ];
+        
+        // Update the marker position
+        updateUserLocation(currentLocation);
+        
+        // If a route is active, update it
+        if (selectedHospital && isRouteVisible) {
+            // Update just the first route (would be too resource-intensive to update all)
+            if (routeControls[0]) {
+                routeControls[0].spliceWaypoints(0, 1, L.latLng(currentLocation[0], currentLocation[1]));
+            }
+        }
+    }, 10000); // Update every 10 seconds
+}
+</script>
+</body>
+</html>

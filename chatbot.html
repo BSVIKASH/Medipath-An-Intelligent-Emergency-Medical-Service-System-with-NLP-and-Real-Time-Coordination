@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Aid Chatbot - Emergency Service System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e74c3c;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .pulse-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .chatbot-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            max-height: 700px;
+        }
+        
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .heart-beat {
+            animation: heartBeat 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.2); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.2); }
+            70% { transform: scale(1); }
+        }
+        
+        .chat-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            position: relative;
+            line-height: 1.5;
+        }
+        
+        .user-message {
+            background-color: var(--secondary-color);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot-message {
+            background-color: #e9e9eb;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-container {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .user-container {
+            justify-content: flex-end;
+        }
+        
+        .bot-container {
+            justify-content: flex-start;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+        
+        .user-avatar {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .bot-avatar {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            position: relative;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            padding-right: 50px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+        
+        .send-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--accent-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .emergency-alert {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            border-radius: 5px;
+        }
+        
+        .emergency-alert i {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .emergency-alert p {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .emergency-alert strong {
+            color: var(--primary-color);
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite both;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        
+        .bot-message ul, .bot-message ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .bot-message li {
+            margin-bottom: 8px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .chatbot-container {
+                padding: 20px;
+                height: 85vh;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .chat-messages {
+                padding: 10px;
+            }
+            
+            .message {
+                padding: 10px 15px;
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pulse-background"></div>
+    
+    <div class="container">
+        <div class="chatbot-container">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            
+            <div class="chat-header">
+                <h1><i class="fas fa-comment-medical heart-beat"></i> First Aid Chatbot</h1>
+            </div>
+            
+            <div class="emergency-alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p><strong>Important:</strong> For serious emergencies, please call <strong>108</strong> immediately.</p>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message-container bot-container">
+                    <div class="message-avatar bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message bot-message">
+                        Hello! I'm your first aid assistant. Please describe any medical issue, and I'll provide first aid guidance. What can I help you with today?
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="message-avatar bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message bot-message" style="padding: 10px 20px;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="user-input" placeholder="Type your question here..." autocomplete="off">
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function goBack() {
+    window.location.href = "/";
+}
+
+// Function to add user message to chat
+function addUserMessage(message) {
+    const chatMessages = document.getElementById("chat-messages");
+    const messageContainer = document.createElement("div");
+    messageContainer.className = "message-container user-container";
+    
+    messageContainer.innerHTML = `
+        <div class="message user-message">${message}</div>
+        <div class="message-avatar user-avatar">
+            <i class="fas fa-user"></i>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageContainer);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Function to add bot message to chat
+function addBotMessage(message) {
+    const chatMessages = document.getElementById("chat-messages");
+    const messageContainer = document.createElement("div");
+    messageContainer.className = "message-container bot-container";
+    
+    messageContainer.innerHTML = `
+        <div class="message-avatar bot-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message bot-message">${message}</div>
+    `;
+    
+    chatMessages.appendChild(messageContainer);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Function to show typing indicator
+function showTypingIndicator() {
+    const typingIndicator = document.getElementById("typing-indicator");
+    typingIndicator.style.display = "flex";
+    const chatMessages = document.getElementById("chat-messages");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Function to hide typing indicator
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById("typing-indicator");
+    typingIndicator.style.display = "none";
+}
+
+// Function to send user message and get response
+function sendMessage() {
+    const userInput = document.getElementById("user-input");
+    const message = userInput.value.trim();
+    
+    if (message === "") return;
+    
+    // Add user message to chat
+    addUserMessage(message);
+    
+    // Clear input field
+    userInput.value = "";
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send message to server using fetch API
+    fetch('/get_response', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `user_input=${encodeURIComponent(message)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        addBotMessage(data.response);
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        console.error('Error:', error);
+        addBotMessage("I'm sorry, there was an error processing your request. Please try again.");
+    });
+}
+
+// Event listener for Enter key
+document.getElementById("user-input").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+
+// Optional: Add some predefined questions as examples
+const exampleQuestions = [
+    "What should I do for a headache?",
+    "How do I treat a sprained ankle?",
+    "What's the first aid for choking?",
+    "How do I handle a minor cut?"
+];
+
+// Add random placeholder from example questions
+document.getElementById("user-input").placeholder = exampleQuestions[Math.floor(Math.random() * exampleQuestions.length)];
+
+    </script>
+</body>
+</html>

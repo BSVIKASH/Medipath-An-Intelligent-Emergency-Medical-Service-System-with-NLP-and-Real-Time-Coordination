@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_574bb43d77b827149d141e161fc6a1e6 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+    <div style="position: fixed; bottom: 50px; left: 50px; background-color: white;
+         padding: 10px; border: 2px solid grey; border-radius: 5px; z-index:9999;">
+        <h4>Route Legend</h4>
+        <p><span style='color: green'>━━</span> Shortest Route</p>
+        <p><span style='color: darkblue'>━━</span> Alternative Route</p>
+        <p><span style='color: red'>━━</span> Longest Route</p>
+        <p>🏥 Hospital</p>
+        <p>📍 Your Location</p>
+        <small>Times based on 40 km/h average speed</small>
+    </div>
+    
+    
+            <div class="folium-map" id="map_574bb43d77b827149d141e161fc6a1e6" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_574bb43d77b827149d141e161fc6a1e6 = L.map(
+                "map_574bb43d77b827149d141e161fc6a1e6",
+                {
+                    center: [9.918335304387874, 78.1134397514805],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_b6f78c5e4b2064298fe1816e31884728 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_b6f78c5e4b2064298fe1816e31884728.addTo(map_574bb43d77b827149d141e161fc6a1e6);
+        
+    
+            var marker_98d1e726530955db024c2997abfff4c4 = L.marker(
+                [9.918335304387874, 78.1134397514805],
+                {
+}
+            ).addTo(map_574bb43d77b827149d141e161fc6a1e6);
+        
+    
+            var icon_1878683fafd406673ba73fca3a5d8414 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_98d1e726530955db024c2997abfff4c4.setIcon(icon_1878683fafd406673ba73fca3a5d8414);
+        
+    
+        var popup_ff002e439bf3fbe116f8b06209ee6cfb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d5ff3f68cef6652401e18ac1b0772741 = $(`<div id="html_d5ff3f68cef6652401e18ac1b0772741" style="width: 100.0%; height: 100.0%;">Your Location</div>`)[0];
+                popup_ff002e439bf3fbe116f8b06209ee6cfb.setContent(html_d5ff3f68cef6652401e18ac1b0772741);
+            
+        
+
+        marker_98d1e726530955db024c2997abfff4c4.bindPopup(popup_ff002e439bf3fbe116f8b06209ee6cfb)
+        ;
+
+        
+    
+    
+            var marker_865e5078b87d04414b6dfd38a21f6c36 = L.marker(
+                [9.886849012033327, 78.15014381533766],
+                {
+}
+            ).addTo(map_574bb43d77b827149d141e161fc6a1e6);
+        
+    
+            var icon_1fac94856af2ae6aeba1a69cf9ae0d19 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "plus",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_865e5078b87d04414b6dfd38a21f6c36.setIcon(icon_1fac94856af2ae6aeba1a69cf9ae0d19);
+        
+    
+        var popup_6c8d729e6c24754041f6b9914b44d50d = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2f628d6a1625cdf7ad322f68ab592b25 = $(`<div id="html_2f628d6a1625cdf7ad322f68ab592b25" style="width: 100.0%; height: 100.0%;">     <div style="min-width: 200px">         <h4>Velammal Medical College Hospital</h4>         <p>Shortest route: 6.36 km</p>         <p>Est. time: 9.5 min</p>         <p>Alternative routes available</p>     </div>     </div>`)[0];
+                popup_6c8d729e6c24754041f6b9914b44d50d.setContent(html_2f628d6a1625cdf7ad322f68ab592b25);
+            
+        
+
+        marker_865e5078b87d04414b6dfd38a21f6c36.bindPopup(popup_6c8d729e6c24754041f6b9914b44d50d)
+        ;
+
+        
+    
+    
+            marker_865e5078b87d04414b6dfd38a21f6c36.bindTooltip(
+                `<div>
+                     Velammal Medical College Hospital
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_46b27c3deebd01bce1e412d9c413869a = L.polyline(
+                [[9.9183832, 78.1134649], [9.917537, 78.1137837], [9.9167106, 78.1139694], [9.9167735, 78.1142148], [9.9158688, 78.1141821], [9.915343, 78.1141066], [9.9147751, 78.1140898], [9.9147662, 78.114262], [9.9144651, 78.1142668], [9.914418, 78.1150068], [9.9144645, 78.1158716], [9.9144657, 78.1163343], [9.9144632, 78.1165006], [9.9144794, 78.1171575], [9.913899, 78.1173719], [9.9138141, 78.1173894], [9.9134452, 78.1174655], [9.9134363, 78.1177305], [9.9129749, 78.1178422], [9.9128259, 78.1183155], [9.9128187, 78.1186448], [9.9121527, 78.118778], [9.912043, 78.1199648], [9.9116833, 78.1199545], [9.911562, 78.1199874], [9.9110445, 78.1199465], [9.9106655, 78.1198944], [9.9106006, 78.1198955], [9.9103477, 78.1198998], [9.9102709, 78.1199045], [9.9069283, 78.1209056], [9.9066333, 78.1210841], [9.9065807, 78.1218846], [9.9063194, 78.1225883], [9.9062949, 78.1229874], [9.9062711, 78.1233757], [9.9062691, 78.1234082], [9.906234, 78.1236858], [9.9062228, 78.1238111], [9.9061981, 78.1240871], [9.9061787, 78.1243037], [9.906154, 78.1245802], [9.9061505, 78.1246027], [9.9061263, 78.1247576], [9.9060944, 78.1249613], [9.905944, 78.1262925], [9.9059391, 78.1264393], [9.9059513, 78.1270293], [9.9060361, 78.1283385], [9.9055972, 78.1285356], [9.9044432, 78.1291536], [9.9037669, 78.1295086], [9.9037205, 78.1295284], [9.9013577, 78.1315866], [9.9011024, 78.1320585], [9.9008291, 78.1324462], [9.8992699, 78.1337835], [9.8988797, 78.1341882], [9.8984284, 78.1346831], [9.8983792, 78.134731], [9.8978019, 78.1355088], [9.8971914, 78.1365192], [9.8968446, 78.1369998], [9.8964897, 78.1374374], [9.8957345, 78.1377687], [9.8955274, 78.1378577], [9.8951154, 78.1381987], [9.8946503, 78.1387106], [9.8945672, 78.1389327], [9.8943822, 78.139405], [9.8942559, 78.1396366], [9.8941276, 78.139814], [9.893948, 78.1400066], [9.8937815, 78.1401429], [9.8937571, 78.1401597], [9.8935183, 78.1403332], [9.8931945, 78.1405389], [9.8929841, 78.1406743], [9.892421, 78.1410667], [9.8920366, 78.1413696], [9.891816, 78.141537], [9.8906593, 78.1422693], [9.889794, 78.1427118], [9.889125, 78.1430252], [9.8883544, 78.1443726], [9.8876896, 78.1446706], [9.8876315, 78.1446966], [9.8873149, 78.1448385], [9.8870175, 78.1449873], [9.8865293, 78.1452315], [9.885994, 78.1455136], [9.884827, 78.1457667], [9.8851529, 78.1497163], [9.8851603, 78.1498335]],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "green", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_574bb43d77b827149d141e161fc6a1e6);
+        
+    
+        var popup_37ead29b63d9a02a49c828af0ea28874 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_e4a194148c5c711b9622863c6a86e657 = $(`<div id="html_e4a194148c5c711b9622863c6a86e657" style="width: 100.0%; height: 100.0%;">Distance: 6.36 km</div>`)[0];
+                popup_37ead29b63d9a02a49c828af0ea28874.setContent(html_e4a194148c5c711b9622863c6a86e657);
+            
+        
+
+        poly_line_46b27c3deebd01bce1e412d9c413869a.bindPopup(popup_37ead29b63d9a02a49c828af0ea28874)
+        ;
+
+        
+    
+    
+            poly_line_46b27c3deebd01bce1e412d9c413869a.bindTooltip(
+                `<div>
+                     Shortest Route
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>
